@@ -35,7 +35,7 @@ for filename in os.listdir(trainpath):
     traintrainlist.append(os.getcwd()+"\\"+trainpath+"\\"+filename)
 
 for file in traintrainlist:
-    newimage = cv2.imread(os.getcwd()+"\\"+trainpath+"\\0_4_left_108.jpg")
+    newimage = cv2.imread(os.getcwd()+"\\"+trainpath+"\\0_4_left_129.jpg")
 
     image = cv2.GaussianBlur(newimage, (5, 5), 5)
     imgsize = (1280, 1024)
@@ -44,35 +44,43 @@ for file in traintrainlist:
     width,height = imgsize
 
     print(file)
-    pts11 = np.float32([[0, height/3], [width, height/3],
-                        [width / 12, height - (height / 12)], [width -(width / 12), height - (height / 12)]])
+    pts11 = np.float32(
+        [[0, height / 3], [3*width / 4, height / 3], [width / 30, height - (height/30)], [3*width/4, height]])
     pts12 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
-    pts21 = np.float32([[width / 3, height/3], [width, height/3],
-                        [width / 3, height], [width - width / 12, height - (height / 12)]])
+    pts21 = np.float32([[width/5, height/3], [4*width/5, height/3],
+                        [width/5 + width / 30, height - (height / 30)], [4*width/5 -(width / 30), height - (height / 30)]])
     pts22 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    pts31 = np.float32([[width / 4, height/3], [width, height/3],
+                        [width / 4, height], [width - width / 30, height - (height / 30)]])
+    pts32 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+
+    # pts41 = np.float32(
+    #     [[0, height / 2], [width / 3, height / 2], [width / 30, height - (height/6) - (height / 30)], [width / 3, height - (height/6)]])
+    # pts42 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+
 
     # pts11 = np.float32([[width/12, height/2 - height/12],[width/2 + width/12, height/2 - height/12],[width/12, height-(height/12)],[width/2 + width/12,height]])
     # pts12 = np.float32([[0,0],[width,0],[0,height],[width,height]])
     # pts21 = np.float32([[width/2 - width/12, height/2 - height/12],[width, height/2 - height/12],[width/2 - width/12, height],[width - width/12,height - (height/12)]])
     # pts22 = np.float32([[0,0],[width,0],[0,height],[width,height]])
-    pts31 = np.float32([[width/12, height/3],[width/2, height/3],[width/12, 2*height/3],[width/2,2*height/3]])
-    pts32 = np.float32([[0,0],[width,0],[0,height],[width,height]])
-    pts41 = np.float32([[width/2 - width/12, height/3],[width - (width/12), height/3],[width/2 - width/12, 2*height/3],[width - width/12,height - 2*height/3]])
-    pts42 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    # pts31 = np.float32([[width/12, height/3],[width/2, height/3],[width/12, 2*height/3],[width/2,2*height/3]])
+    # pts32 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    # pts41 = np.float32([[width/2 - width/12, height/3],[width - (width/12), height/3],[width/2 - width/12, 2*height/3],[width - width/12,height - 2*height/3]])
+    # pts42 = np.float32([[0,0],[width,0],[0,height],[width,height]])
     pts51 = np.float32([[width/3, height/3],[2*width/3, height/3],[width/3 + width/12, height - height/12],[2*width/3 - width/12, height - height/12]])
     pts52 = np.float32([[0,0],[width,0],[0,height],[width,height]])
     M1 = cv2.getPerspectiveTransform(pts11,pts12)
     M2 = cv2.getPerspectiveTransform(pts21,pts22)
-    # M3 = cv2.getPerspectiveTransform(pts31,pts32)
-    # M4 = cv2.getPerspectiveTransform(pts41,pts42)
+    M3 = cv2.getPerspectiveTransform(pts31,pts32)
+    #M4 = cv2.getPerspectiveTransform(pts41,pts42)
     # M5 = cv2.getPerspectiveTransform(pts51,pts52)
 
     imagelist = []
 
     imagelist.append(cv2.warpPerspective(image,M1,imgsize))
     imagelist.append(cv2.warpPerspective(image,M2,imgsize))
-    # imagelist.append(cv2.warpPerspective(image,M3,imgsize))
-    # imagelist.append(cv2.warpPerspective(image,M4,imgsize))
+    imagelist.append(cv2.warpPerspective(image,M3,imgsize))
+    #imagelist.append(cv2.warpPerspective(image,M4,imgsize))
     # imagelist.append(cv2.warpPerspective(image,M5,imgsize))
     #
 
@@ -91,6 +99,7 @@ for file in traintrainlist:
 
         kernel = np.ones((5, 5), np.uint8)
         image = cv2.erode(image, kernel, iterations=1)
+        image = cv2.dilate(image, kernel, iterations=1)
 
         filename = "{}.png".format(os.getpid())
         cv2.imwrite(filename, image)
