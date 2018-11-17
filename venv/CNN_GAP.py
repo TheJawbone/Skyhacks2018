@@ -53,8 +53,8 @@ test_datagen = ImageDataGenerator(rescale = 1./255)
 
 
 
-pieknepath = "training_set\\piekne"
-niewidzialnepath = "training_set\\niewidzialne"
+pieknepath = "set_gaps\\przerwa"
+niewidzialnepath = "set_gaps\\nieprzerwa"
 
 pieknelist = list()
 niewidzialnelist = list()
@@ -81,7 +81,7 @@ for file in pieknelist:
         image = img_to_array(image)
         zmienna= zmienna +1
 
-        cv2.imwrite(os.getcwd()+"\\training_set_processed\\piekne\\"+str(zmienna)+".png",image)
+        cv2.imwrite(os.getcwd()+"\\set_gaps_processed\\przerwa\\"+str(zmienna)+".png",image)
 
 for file in niewidzialnelist:
         image = cv2.imread(file)
@@ -91,14 +91,14 @@ for file in niewidzialnelist:
         image = cv2.Canny(image, 50, 250, edges=25)
         image = img_to_array(image)
         zmienna = zmienna + 1
-        cv2.imwrite(os.getcwd() + "\\training_set_processed\\niewidzialne\\" +str(zmienna) + ".png", image)
+        cv2.imwrite(os.getcwd() + "\\set_gaps_processed\\nieprzerwa\\" +str(zmienna) + ".png", image)
 
 shuffle(trainlist)
 
 
 
 
-training_set = train_datagen.flow_from_directory('training_set_processed',
+training_set = train_datagen.flow_from_directory('set_gaps_processed',
 target_size = (128, 128),
 batch_size = 16,
 color_mode="grayscale",
@@ -118,4 +118,3 @@ classifier.fit_generator(
 
 with open(os.getcwd()+'\\model_architecture.json', 'w') as f:
     f.write(classifier.to_json())
-
