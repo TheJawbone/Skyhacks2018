@@ -27,23 +27,19 @@ args = vars(ap.parse_args())
 image = cv2.imread(args["image"])
 
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-width, height = image.shape
-
-ratio = height/width
-width=1280
-height = int(width*ratio)
-image = cv2.GaussianBlur(image, (5, 5), 0)
-edged = cv2.Canny(image, 50, 200, 255)
-
-#kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]);
-#image = cv2.filter2D(image, -1, kernel)
+image = cv2.resize(image, (640, 480))
+#
+image = cv2.GaussianBlur(image, (5, 5), 5)
 
 average_color_per_row = np.average(image, axis=0)
 average_color = np.average(average_color_per_row, axis=0)
 std_per_row = np.std(image, axis=0)
 std = np.std(std_per_row, axis=0)
-th, image=cv2.threshold(image, average_color + 4*std, 255, cv2.THRESH_BINARY_INV)
+
+th, image=cv2.threshold(image, average_color + 5*std, 255, cv2.THRESH_BINARY_INV)
+
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
+image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
 filename = "{}.png".format(os.getpid())
 cv2.imwrite(filename, image)
