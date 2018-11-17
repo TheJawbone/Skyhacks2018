@@ -48,7 +48,7 @@ average_color_per_row = np.average(image, axis=0)
 average_color = np.average(average_color_per_row, axis=0)
 std_per_row = np.std(image, axis=0)
 std = np.std(std_per_row, axis=0)
-th, image=cv2.threshold(image, average_color, 1.0, cv2.THRESH_TOZERO)
+th, image=cv2.threshold(image, average_color + std, 1.0, cv2.THRESH_TOZERO)
 
 print(average_color)
 cv2.imshow('image',image)
