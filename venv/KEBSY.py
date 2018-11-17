@@ -69,11 +69,13 @@ for image in imagelist:
 
     th, image = cv2.threshold(image, average_color + 5 * std, 255, cv2.THRESH_BINARY)
 
+
     kernel = np.ones((5, 5), np.uint8)
     image = cv2.erode(image, kernel, iterations=3)
 
     filename = "{}.png".format(os.getpid())
     cv2.imwrite(filename, image)
+
 
     firstlinecount=2
     secondlinecount=2
