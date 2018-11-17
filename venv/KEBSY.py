@@ -25,10 +25,16 @@ args = vars(ap.parse_args())
 
 # load the example image and convert it to grayscale
 image = cv2.imread(args["image"])
-
+imgsize = (1280, 1024)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-image = cv2.resize(image, (640, 480))
-#
+image = cv2.resize(image, imgsize)
+width,height = imgsize
+
+pts1 = np.float32([[width/12, height/2 - height/12],[width/2 + width/12, height/2 - height/12],[width/12, height-(height/12)],[width/2 + width/12,height]])
+pts2 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+M = cv2.getPerspectiveTransform(pts1,pts2)
+image = cv2.warpPerspective(image,M,imgsize)
+
 image = cv2.GaussianBlur(image, (5, 5), 5)
 
 average_color_per_row = np.average(image, axis=0)
@@ -36,10 +42,12 @@ average_color = np.average(average_color_per_row, axis=0)
 std_per_row = np.std(image, axis=0)
 std = np.std(std_per_row, axis=0)
 
-th, image=cv2.threshold(image, average_color + 5*std, 255, cv2.THRESH_BINARY_INV)
+th, image=cv2.threshold(image, average_color + 5*std, 255, cv2.THRESH_BINARY)
 
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
-image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+kernel=np.ones((5,5), np.uint8)
+image=cv2.erode(image, kernel, iterations=3)
+# kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
+# image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
 
 filename = "{}.png".format(os.getpid())
 cv2.imwrite(filename, image)
