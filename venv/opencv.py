@@ -12,6 +12,12 @@ import matplotlib.pyplot as plt
 import random
 from random import shuffle
 
+from PIL import Image
+import pytesseract
+import argparse
+import cv2
+import os
+
 input_shape=(32,32,1)
 
 def createModel():
@@ -37,6 +43,8 @@ def createModel():
     model.add(keras.layers.Dense(1, activation='sigmoid'))
 
     return model
+
+
 
 testpath = "1.png"
 
