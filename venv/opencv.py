@@ -51,7 +51,7 @@ testpath = "1.png"
 image=cv2.imread(testpath)
 image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 image = image.astype('float')/255.0
-image=cv2.resize(image, (1280,720))
+image=cv2.resize(image, (1280,1024))
 average_color_per_row = np.average(image, axis=0)
 average_color = np.average(average_color_per_row, axis=0)
 std_per_row = np.std(image, axis=0)
