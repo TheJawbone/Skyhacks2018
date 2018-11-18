@@ -29,7 +29,7 @@ with open('model_architecture_gaps.json', 'r') as f:
 
 model_gaps.load_weights('weights_model_gaps.h5')
 
-trainpath="Validation\\0_51\\0_51_left"
+trainpath="Validation\\0_64_left"
 
 csv_header="team_name;train_number;left_right;frame_number;wagon;uic_0_1;uic_label\n"
 submission_file=open("Nuts4DonutsSubmission.csv", "w+")
@@ -74,6 +74,8 @@ standardred=0
 standardgreen=0
 standardblue=0
 
+frame_delay = 10
+
 sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
 import math
 fileindex = 0
@@ -81,6 +83,9 @@ for item in sortedList:
     new_csv_string=csv_string
     new_csv_string += str(frame_index)+';'
     frame_index+=1
+    if frame_delay > 0:
+        frame_delay -= 1
+
 
     file = item[1]
     newimage = cv2.imread(file)
@@ -90,10 +95,11 @@ for item in sortedList:
     predimage = cv2.Canny(predimage, 50, 250, edges=25)
     predimage = np.reshape(predimage, (1, predimage.shape[0], predimage.shape[1], 1))
     prediction=model_gaps.predict(predimage)[0] > 0.5
-    if prediction[0] > 0.5 and find_gap == 1:
+    if prediction[0] > 0.5 and find_gap == 1 and frame_delay == 0:
         print("Found gap!")
         wagon_number+=1
         find_gap = 0
+        frame_delay=10
     elif prediction[0] < 0.5 and find_gap == 0:
         find_gap=1
     # width,height,ch=newimage.shape
