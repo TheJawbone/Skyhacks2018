@@ -245,7 +245,7 @@ for item in sortedList:
                     line = line.replace(char, '')
             if numbersCount > 6 and len(line) == 8:
                 line = line[:-1] + '-' + line[len(line) - 1]
-                line = line.replace('B', '8').replace('G', '6').replace('S', '5')
+                line = line.replace('B', '8').replace('G', '6').replace('S', '5').replace('I', '1').replace('O', '0').replace('D', 0).replace('C', '6').replace('Z','2').replace('U','0')
                 print('UIC: ' + line)
                 uicFound = True
                 uic_bool=1
