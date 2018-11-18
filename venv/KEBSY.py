@@ -29,7 +29,18 @@ with open('model_architecture_gaps.json', 'r') as f:
 
 model_gaps.load_weights('weights_model_gaps.h5')
 
-trainpath="Validation\\0_51\\0_51_left"
+trainpath="Training\\0_4\\0_4_left"
+
+csv_header="team_name;train_number;left_right;frame_number;wagon;uic_0_1;uic_label\n"
+submission_file=open("Nuts4DonutsSubmission.csv", "w+")
+submission_file.write(csv_header)
+csv_string = "Nuts4Donuts;51;left;"
+
+frame_index = 0
+wagon_number = 0
+uic_bool = "locomotive"
+pixel = np.array([0, 0, 0])
+find_gap=0
 
 traintrainlist = list()
 fileSortDict = dict()
@@ -45,11 +56,88 @@ for justfilename in os.listdir(trainpath):
     else:
         fileSortDict[int(filename[-7:-4])] = filename
 
-sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
+standardred=0
+standardgreen=0
+standardblue=0
 
+sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
+import math
+fileindex = 0
 for item in sortedList:
+    new_csv_string=csv_string
+    new_csv_string += str(frame_index)+';'
+    frame_index+=1
+
     file = item[1]
     newimage = cv2.imread(file)
+    predimage = cv2.cvtColor(newimage, cv2.COLOR_BGR2GRAY)
+    predimage = cv2.resize(predimage, (128, 128))
+    predimage = cv2.GaussianBlur(predimage, (5, 5), 5)
+    predimage = cv2.Canny(predimage, 50, 250, edges=25)
+    predimage = np.reshape(predimage, (1, predimage.shape[0], predimage.shape[1], 1))
+    prediction=model_gaps.predict(predimage)[0] > 0.5
+    if prediction[0] > 0.5 and find_gap == 1:
+        print("Found gap!")
+        wagon_number+=1
+        find_gap = 0
+    elif prediction[0] < 0.5 and find_gap == 0:
+        find_gap=1
+    # width,height,ch=newimage.shape
+    # middlepixel = newimage[int(width/2), int(1)]
+    # topleftpixel = newimage[int(width/2) -1, int(1) - 1]
+    # toprightpixel = newimage[int(width/2) + 1, int(1) - 1]
+    # lowerrightpixel = newimage[int(width/2) + 1, int(1) + 1]
+    # lowerleftpixel = newimage[int(width/2) - 1, int(1) + 1]
+    # # width, height, ch = newimage.shape
+    # # middlepixel = newimage[int(width / 2), 1)]
+    # # topleftpixel = newimage[int(width / 2) - 1, 0]
+    # # toprightpixel = newimage[int(width / 2) + 1, 0]
+    # # lowerrightpixel = newimage[int(width / 2) + 1, 2]
+    # # lowerleftpixel = newimage[int(width / 2) - 1, 2]
+    #
+    # # width,height,ch=newimage.shape
+    # # middlepixel = newimage[686, 754]
+    # # topleftpixel = newimage[686 -1, 751 -1]
+    # # toprightpixel = newimage[686 + 1, 751 - 1]
+    # # lowerrightpixel = newimage[686 + 1, 751 + 1]
+    # # lowerleftpixel = newimage[686 - 1, 751 + 1]
+    #
+    # averagered=middlepixel[0]/5+topleftpixel[0]/5+toprightpixel[0]/5+lowerleftpixel[0]/5+lowerrightpixel[0]/5
+    # stdred = math.sqrt(pow(middlepixel[0]-averagered,2)/5+pow(topleftpixel[0]-averagered,2)/5+pow(toprightpixel[0]-averagered,2)/5+pow(lowerleftpixel[0]-averagered,2)/5+pow(lowerrightpixel[0]-averagered,2)/5)
+    # averagegreen=middlepixel[1]/5+topleftpixel[1]/5+toprightpixel[1]/5+lowerleftpixel[1]/5+lowerrightpixel[1]/5
+    # stdgreen = math.sqrt(pow(middlepixel[1] - averagegreen, 2) / 5 + pow(topleftpixel[1] - averagegreen, 2) / 5 + pow(
+    #     toprightpixel[1] - averagegreen, 2) / 5 + pow(lowerleftpixel[1] - averagegreen, 2) / 5 + pow(
+    #     lowerrightpixel[1] - averagegreen, 2) / 5)
+    #
+    # averageblue=middlepixel[2]/5+topleftpixel[2]/5+toprightpixel[2]/5+lowerleftpixel[2]/5+lowerrightpixel[2]/5
+    # stdblue = math.sqrt(pow(middlepixel[2] - averageblue, 2) / 5 + pow(topleftpixel[2] - averageblue, 2) / 5 + pow(
+    #     toprightpixel[2] - averageblue, 2) / 5 + pow(lowerleftpixel[2] - averageblue, 2) / 5 + pow(
+    #     lowerrightpixel[2] - averageblue, 2) / 5)
+    # averagepixel = [averagered, averagegreen, averageblue]
+    # if pixel[0] == 0:
+    #     if pixel[1] == 0:
+    #         if pixel[2] == 0:
+    #             pixel[0]=averagered
+    #             pixel[1] = averagegreen
+    #             pixel[2] = averageblue
+    #             standardred=stdred
+    #             standardgreen=stdgreen
+    #             standardblue=stdblue
+    # if find_gap == 0:
+    #     if abs(pixel[0] - averagered) > 2*standardred:
+    #         if abs(pixel[1] - averagegreen) > 2*standardgreen:
+    #             if abs(pixel[2] - averageblue) > 2*standardblue:
+    #                 print("lol")
+    #                 find_gap = 1
+    # else:
+    #     if abs(pixel[0] - averagered) < 2*standardred:
+    #         if abs(pixel[1] - averagegreen) < 2*standardgreen:
+    #             if abs(pixel[2] - averageblue) < 2*standardblue:
+    #                 print("Found gap!")
+    #                 wagon_number+=1
+    #                 find_gap = 0
+
+    new_csv_string+=str(wagon_number)+';'
 
     image = cv2.GaussianBlur(newimage, (5, 5), 5)
     imgsize = (1280, 1024)
@@ -109,6 +197,9 @@ for item in sortedList:
 
         image = cv2.GaussianBlur(image, (5, 5), 5)
 
+        uic_label = '0'
+
+
         average_color_per_row = np.average(image, axis=0)
         average_color = np.average(average_color_per_row, axis=0)
         std_per_row = np.std(image, axis=0)
@@ -157,6 +248,8 @@ for item in sortedList:
                 line = line.replace('B', '8').replace('G', '6').replace('S', '5')
                 print('UIC: ' + line)
                 uicFound = True
+                uic_bool=1
+                uic_label=line
                 break
             else:
                 line = '0'
@@ -166,8 +259,17 @@ for item in sortedList:
         #cv2.imshow("Image", image)
         #cv2.waitKey(0)
 
-    outputFile.write(line + '\n')
+    if wagon_number == 0:
+        new_csv_string += 'locomotive;'
+    elif uicFound == True:
+        new_csv_string += str(1)+';'
+    else:
+        new_csv_string += str(0) + ';'
 
-outputFile.close()
+    new_csv_string += uic_label + '\n'
+
+    submission_file.write(new_csv_string)
+
+submission_file.close()
 # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
 # image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
