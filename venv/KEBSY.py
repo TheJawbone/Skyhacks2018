@@ -5,6 +5,8 @@ import argparse
 import cv2
 import os
 import numpy as np
+import operator
+import re
 import matplotlib as plt
 import matplotlib.pyplot as plt
 import glob
@@ -27,14 +29,26 @@ with open('model_architecture_gaps.json', 'r') as f:
 
 model_gaps.load_weights('weights_model_gaps.h5')
 
-trainpath="Training\\0_4\\0_4_left"
+trainpath="Validation\\0_51\\0_51_left"
 
 traintrainlist = list()
+fileSortDict = dict()
 
-for filename in os.listdir(trainpath):
-    traintrainlist.append(os.getcwd()+"\\"+trainpath+"\\"+filename)
+for justfilename in os.listdir(trainpath):
+    filename = os.getcwd()+"\\"+trainpath+"\\"+justfilename
+    traintrainlist.append(filename)
 
-for file in traintrainlist:
+    if not filename[len(filename) - 7].isdecimal() and not filename[len(filename) - 6].isdecimal():
+        fileSortDict[int(filename[-5:-4])] = filename
+    elif not filename[len(filename) - 7].isdecimal():
+        fileSortDict[int(filename[-6:-4])] = filename
+    else:
+        fileSortDict[int(filename[-7:-4])] = filename
+
+sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
+
+for item in sortedList:
+    file = item[1]
     newimage = cv2.imread(file)
 
     image = cv2.GaussianBlur(newimage, (5, 5), 5)
@@ -86,7 +100,13 @@ for file in traintrainlist:
 
     index=1
 
+    outputFile = open('output.txt', 'a')
+    uicFound = False
+
     for image in imagelist:
+        if uicFound:
+            break;
+
         image = cv2.GaussianBlur(image, (5, 5), 5)
 
         average_color_per_row = np.average(image, axis=0)
@@ -118,15 +138,36 @@ for file in traintrainlist:
                         thirdnumber.append(character)
                         thirdlinecount -= 1
                 listindex +=1
-            print(thirdnumber)
+            #print(thirdnumber)
         os.remove(filename)
-        print("Result: ")
-        print(index)
-        print(text)
+        #print("Result: ")
+        #print(index)
+        #print(text)
+
+        #FORMATOWANIE TEKSTU
+        for line in linelist:
+            numbersCount = 0
+            for char in line:
+                if str.isdecimal(char):
+                    numbersCount += 1
+                if not str.isalnum(char):
+                    line = line.replace(char, '')
+            if numbersCount > 6 and len(line) == 8:
+                line = line[:-1] + '-' + line[len(line) - 1]
+                line = line.replace('B', '8').replace('G', '6').replace('S', '5')
+                print('UIC: ' + line)
+                uicFound = True
+                break
+            else:
+                line = '0'
+
         index += 1
         image = cv2.resize(image, (512, 512))
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
+        #cv2.imshow("Image", image)
+        #cv2.waitKey(0)
 
+    outputFile.write(line + '\n')
+
+outputFile.close()
 # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
 # image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
