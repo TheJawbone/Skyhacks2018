@@ -35,7 +35,7 @@ for filename in os.listdir(trainpath):
     traintrainlist.append(os.getcwd()+"\\"+trainpath+"\\"+filename)
 
 for file in traintrainlist:
-    newimage = cv2.imread(os.getcwd()+"\\"+trainpath+"\\0_4_left_129.jpg")
+    newimage = cv2.imread(file)
 
     image = cv2.GaussianBlur(newimage, (5, 5), 5)
     imgsize = (1280, 1024)
