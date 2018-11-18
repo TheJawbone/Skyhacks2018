@@ -1,45 +1,132 @@
-# import the necessary packages
+3# import the necessary packages
 from PIL import Image
 import pytesseract
 import argparse
 import cv2
 import os
+import numpy as np
+import matplotlib as plt
+import matplotlib.pyplot as plt
+import glob
+import scipy
+from scipy import ndimage
+from imutils.perspective import four_point_transform
+from imutils import contours
+import imutils
+from keras.preprocessing.image import img_to_array
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-                help="path to input image to be OCR'd")
-ap.add_argument("-p", "--preprocess", type=str, default="thresh",
-                help="type of preprocessing to be done")
-args = vars(ap.parse_args())
+from keras.models import model_from_json
 
-# load the example image and convert it to grayscale
-image = cv2.imread(args["image"])
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+with open('model_architecture.json', 'r') as f:
+    model_uic = model_from_json(f.read())
 
-# check to see if we should apply thresholding to preprocess the
-# image
-if args["preprocess"] == "thresh":
-    gray = cv2.threshold(gray, 0, 255,
-                         cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+model_uic.load_weights('weights_model.h5')
 
-# make a check to see if median blurring should be done to remove
-# noise
-elif args["preprocess"] == "blur":
-    gray = cv2.medianBlur(gray, 3)
+with open('model_architecture_gaps.json', 'r') as f:
+    model_gaps = model_from_json(f.read())
 
-# write the grayscale image to disk as a temporary file so we can
-# apply OCR to it
-filename = "{}.png".format(os.getpid())
-cv2.imwrite(filename, gray)
-cv2.fisheye.undistortImage(gray, gray, 1, 1)
-# load the image as a PIL/Pillow image, apply OCR, and then delete
-# the temporary file
-text = pytesseract.image_to_string(Image.open(filename))
-os.remove(filename)
-print(text)
+model_gaps.load_weights('weights_model_gaps.h5')
 
-# show the output images
-#cv2.imshow("Image", image)
-cv2.imshow("Output", gray)
-cv2.waitKey(0)
+trainpath="Training\\0_4\\0_4_left"
+
+traintrainlist = list()
+
+for filename in os.listdir(trainpath):
+    traintrainlist.append(os.getcwd()+"\\"+trainpath+"\\"+filename)
+
+for file in traintrainlist:
+    newimage = cv2.imread(os.getcwd()+"\\"+trainpath+"\\0_4_left_129.jpg")
+
+    image = cv2.GaussianBlur(newimage, (5, 5), 5)
+    imgsize = (1280, 1024)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = cv2.resize(image, imgsize)
+    width,height = imgsize
+
+    print(file)
+    pts11 = np.float32(
+        [[0, height / 3], [3*width / 4, height / 3], [width / 30, height - (height/30)], [3*width/4, height]])
+    pts12 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    pts21 = np.float32([[width/5, height/3], [4*width/5, height/3],
+                        [width/5 + width / 30, height - (height / 30)], [4*width/5 -(width / 30), height - (height / 30)]])
+    pts22 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    pts31 = np.float32([[width / 4, height/3], [width, height/3],
+                        [width / 4, height], [width - width / 30, height - (height / 30)]])
+    pts32 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+
+    # pts41 = np.float32(
+    #     [[0, height / 2], [width / 3, height / 2], [width / 30, height - (height/6) - (height / 30)], [width / 3, height - (height/6)]])
+    # pts42 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+
+
+    # pts11 = np.float32([[width/12, height/2 - height/12],[width/2 + width/12, height/2 - height/12],[width/12, height-(height/12)],[width/2 + width/12,height]])
+    # pts12 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    # pts21 = np.float32([[width/2 - width/12, height/2 - height/12],[width, height/2 - height/12],[width/2 - width/12, height],[width - width/12,height - (height/12)]])
+    # pts22 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    # pts31 = np.float32([[width/12, height/3],[width/2, height/3],[width/12, 2*height/3],[width/2,2*height/3]])
+    # pts32 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    # pts41 = np.float32([[width/2 - width/12, height/3],[width - (width/12), height/3],[width/2 - width/12, 2*height/3],[width - width/12,height - 2*height/3]])
+    # pts42 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    pts51 = np.float32([[width/3, height/3],[2*width/3, height/3],[width/3 + width/12, height - height/12],[2*width/3 - width/12, height - height/12]])
+    pts52 = np.float32([[0,0],[width,0],[0,height],[width,height]])
+    M1 = cv2.getPerspectiveTransform(pts11,pts12)
+    M2 = cv2.getPerspectiveTransform(pts21,pts22)
+    M3 = cv2.getPerspectiveTransform(pts31,pts32)
+    #M4 = cv2.getPerspectiveTransform(pts41,pts42)
+    # M5 = cv2.getPerspectiveTransform(pts51,pts52)
+
+    imagelist = []
+
+    imagelist.append(cv2.warpPerspective(image,M1,imgsize))
+    imagelist.append(cv2.warpPerspective(image,M2,imgsize))
+    imagelist.append(cv2.warpPerspective(image,M3,imgsize))
+    #imagelist.append(cv2.warpPerspective(image,M4,imgsize))
+    # imagelist.append(cv2.warpPerspective(image,M5,imgsize))
+    #
+
+    index=1
+
+    for image in imagelist:
+        image = cv2.GaussianBlur(image, (5, 5), 5)
+
+        average_color_per_row = np.average(image, axis=0)
+        average_color = np.average(average_color_per_row, axis=0)
+        std_per_row = np.std(image, axis=0)
+        std = np.std(std_per_row, axis=0)
+
+        th, image = cv2.threshold(image, average_color + 5 * std, 255, cv2.THRESH_BINARY)
+
+
+        kernel = np.ones((5, 5), np.uint8)
+        image = cv2.erode(image, kernel, iterations=1)
+        image = cv2.dilate(image, kernel, iterations=1)
+
+        filename = "{}.png".format(os.getpid())
+        cv2.imwrite(filename, image)
+
+        thirdlinecount=8
+        thirdnumber=[]
+        listindex=0
+        text = pytesseract.image_to_string(Image.open(filename))
+        linelist = str.splitlines(text)
+        if len(linelist) > 2:
+            while thirdlinecount != 0 and listindex < len(linelist):
+                thirdlinecount=8
+                thirdnumber = []
+                for character in linelist[listindex]:
+                    if str.isdecimal(character) and thirdlinecount > 0:
+                        thirdnumber.append(character)
+                        thirdlinecount -= 1
+                listindex +=1
+            print(thirdnumber)
+        os.remove(filename)
+        print("Result: ")
+        print(index)
+        print(text)
+        index += 1
+        image = cv2.resize(image, (512, 512))
+        cv2.imshow("Image", image)
+        cv2.waitKey(0)
+
+# kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
+# image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
