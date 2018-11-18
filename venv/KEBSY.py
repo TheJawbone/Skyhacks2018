@@ -74,7 +74,7 @@ standardred=0
 standardgreen=0
 standardblue=0
 
-frame_delay = 10
+frame_delay = 15
 
 sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
 import math
@@ -99,7 +99,7 @@ for item in sortedList:
         print("Found gap!")
         wagon_number+=1
         find_gap = 0
-        frame_delay=10
+        frame_delay=15
     elif prediction[0] < 0.5 and find_gap == 0:
         find_gap=1
     # width,height,ch=newimage.shape
