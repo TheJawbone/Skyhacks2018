@@ -95,7 +95,7 @@ for item in sortedList:
         wagon_number+=1
         find_gap = 0
     elif prediction[0] < 0.5 and find_gap == 0:
-        find_gap=1
+        find_gap=
     # width,height,ch=newimage.shape
     # middlepixel = newimage[int(width/2), int(1)]
     # topleftpixel = newimage[int(width/2) -1, int(1) - 1]
