@@ -50,6 +50,15 @@ for justfilename in os.listdir(trainpath):
     fileSortDict[int(numSeq)] = filename
 
 sortedList = sorted(fileSortDict.items(), key=operator.itemgetter(0))
+teamName = 'Nuts4Donuts'
+train_number = '51'
+left_right = 'left'
+wagon = '0'
+uic_0_1 = 0
+outputFile = open('output.txt', 'a')
+frameNumber = 0
+
+outputFile.write('team_name,train_number,left_right,frame_number,wagon,uic_0_1,uic_label')
 
 for item in sortedList:
     file = item[1]
@@ -104,7 +113,6 @@ for item in sortedList:
 
     index=1
 
-    outputFile = open('output.txt', 'a')
     uicFound = False
 
     for image in imagelist:
@@ -163,12 +171,13 @@ for item in sortedList:
                     .replace('S', '5')\
                     .replace('I', '1')\
                     .replace('O', '0')\
-                    .replace('D', 0)\
+                    .replace('D', '0')\
                     .replace('C', '6')\
                     .replace('Z','2')\
                     .replace('U','0')
                 print('UIC: ' + line)
                 uicFound = True
+                uic_0_1 = 1
                 break
             else:
                 line = '0'
@@ -178,7 +187,9 @@ for item in sortedList:
         #cv2.imshow("Image", image)
         #cv2.waitKey(0)
 
-    outputFile.write(line + '\n')
+    outputFile.write(teamName + ',' + train_number + ',' + left_right + ',' + str(frameNumber) + ',' + wagon + ',' + str(uic_0_1) + ',' + line + '\n')
+    uic_0_1 = 0
+    frameNumber += 1
 
 outputFile.close()
 # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (1, 5))
